@@ -22,12 +22,17 @@ def main():
 
 def scanner(line):
     token = ""
+    
+    # This loop build the token up until it sees a white space
+    # prints the currently built token upon seeing a white space
     for n in line:
         if n != " ":
             token += n
         else:
             print(token)
             token = ""
+    
+    # prints the last token in the string since no white space will come after
     print(token)
            
     
