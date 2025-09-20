@@ -26,15 +26,33 @@ def scanner(line):
     # This loop build the token up until it sees a white space
     # prints the currently built token upon seeing a white space
     for n in line:
-        if n != " ":
-            token += n
+        if n == " ":
+           if token:
+               print(parse(token))
+               token = ""
         else:
-            print(token)
-            token = ""
+            if token and (token[0].isdigit() and n.isalpha()):
+                print(parse(token))
+                token = n
+            else:
+                token += n
     
     # prints the last token in the string since no white space will come after
-    print(token)
-           
+    print(parse(token))
+
+def parse(token):
+    identifier = re.search(r"[a-zA-Z_][a-zA-Z0-9_]*$",token)
+    symbol =  re.search(r"[\( | \) | \+ | \* | \- | \% | \/| \{ | \} | \=]+",token)
+    number = re.search(r"[0-9]+",token)
+  
+    if identifier:
+        return (identifier.group(), "identifier")
+    if symbol:
+        return (symbol.group(), "symbol")
+    if number:
+        return(number.group(), "number")
+  
+    
     
 if __name__ == "__main__":
     main()
