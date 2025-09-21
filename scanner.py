@@ -1,17 +1,21 @@
-import fileinput
+import sys
 import re
 
 def main():
-    input_filename = "test_input.txt"
-    output_filename = "test_output.txt"
+    # Check if argument passed in terminal was invalid
+    if len(sys.argv) < 3:
+        print("Usage: python scanner.py <inputfile> <outputfile>")
+        return
     
     try:
+        input_filename = sys.argv[1]
+        output_filename = sys.argv[2]
         with open(input_filename, 'r') as infile, open(output_filename, 'w') as outfile:
-            for line in infile:
-                read_line = line
-                print(read_line)
-                scanner(read_line)
-                outfile.write(read_line)
+            for line in infile: 
+                print("\n" + line.strip())
+                outfile.write("Line: " + line)
+                scanner(line,outfile)
+                outfile.write("\n")
                 
           
         print(f"Content from '{input_filename}' written to '{output_filename}'")   
@@ -20,7 +24,8 @@ def main():
     except Exception as e:
         print(f"Error occured {e}")
 
-def scanner(line):
+# Scanner use to check if the token if valid or invalid, then sends token to parser
+def scanner(line,outfile):
     token = ""
     
     # This loop build the token up until it sees a white space
@@ -28,29 +33,42 @@ def scanner(line):
     for n in line:
         if n == " ":
            if token:
-               print(parse(token))
+               print(parse(token,outfile))
                token = ""
         else:
             if token and (token[0].isdigit() and n.isalpha()):
-                print(parse(token))
+                print(parse(token,outfile))
+                token = n
+            elif token and ((n == "&" or n == ".")):
+                print(parse(token,outfile))
                 token = n
             else:
                 token += n
     
     # prints the last token in the string since no white space will come after
-    print(parse(token))
+    print(parse(token,outfile))
 
-def parse(token):
+# Parse get the valid token and write/return the type of token that was passed
+def parse(token,outfile):
     identifier = re.search(r"[a-zA-Z_][a-zA-Z0-9_]*$",token)
     symbol =  re.search(r"[\( | \) | \+ | \* | \- | \% | \/| \{ | \} | \=]+",token)
     number = re.search(r"[0-9]+",token)
+    invalid = re.search(r"[\&|\.]", token)
   
     if identifier:
-        return (identifier.group(), "identifier")
+        outfile.write(f"{identifier.group()} : IDENTIFIER" + "\n")
+        return(identifier.group() + " : IDENTIFIER")
     if symbol:
-        return (symbol.group(), "symbol")
+        outfile.write(f"{symbol.group()} : SYMBOL" + "\n")
+        return(symbol.group() + " : SYMBOL")
     if number:
-        return(number.group(), "number")
+        outfile.write(f"{number.group()} : NUMBER" + "\n")
+        return(number.group() + " : NUMBER")
+    if invalid:
+        outfile.write(f"ERROR READING : {invalid.group()}" +"\n")
+        return(f"ERROR READING : {invalid.group()}")
+        
+   
   
     
     
