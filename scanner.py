@@ -76,9 +76,6 @@ def parse(token,outfile):
         outfile.write(f"ERROR READING : {invalid.group()}" +"\n")
         return(f"ERROR READING : {invalid.group()}")
         
-   
-  
-    
-    
+      
 if __name__ == "__main__":
     main()

@@ -29,6 +29,16 @@ catfood : IDENTIFIER
 - : SYMBOL
 45 : NUMBER
 
-Line: 45)45 : NUMBER
+Line: 45)
+45 : NUMBER
 ) : SYMBOL
+
+Line: catfood
+catfood : IDENTIFIER
+
+Line: catfood67.
+catfood67 : IDENTIFIER
+ERROR READING : .
+
+Line: catfood45catfood45 : IDENTIFIER
 
