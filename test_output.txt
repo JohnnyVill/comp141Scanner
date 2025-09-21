@@ -1,6 +1,5 @@
-Line: 34. + 89 - x * y23
+Line: 34 + 89 - x * y23
 34 : NUMBER
-ERROR READING : .
 + : SYMBOL
 89 : NUMBER
 - : SYMBOL
@@ -24,4 +23,12 @@ Line: 2 + x
 2 : NUMBER
 + : SYMBOL
 x : IDENTIFIER
+
+Line: catfood-45
+catfood : IDENTIFIER
+- : SYMBOL
+45 : NUMBER
+
+Line: 45)45 : NUMBER
+) : SYMBOL
 

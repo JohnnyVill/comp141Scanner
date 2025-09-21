@@ -31,14 +31,22 @@ def scanner(line,outfile):
     # This loop build the token up until it sees a white space
     # prints the currently built token upon seeing a white space
     for n in line:
+        match_symbol = re.match(r"[\( | \) | \+ | \* | \- | \% | \/| \{ | \} | \=]",n)
         if n == " ":
            if token:
                print(parse(token,outfile))
                token = ""
+        elif match_symbol:
+            if token:
+                print(parse(token,outfile))
+                token = ""
+            
+            print(parse(n,outfile))
         else:
             if token and (token[0].isdigit() and n.isalpha()):
                 print(parse(token,outfile))
-                token = n
+                if n != " ":
+                    token = n
             elif token and ((n == "&" or n == ".")):
                 print(parse(token,outfile))
                 token = n
