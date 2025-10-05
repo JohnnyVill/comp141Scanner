@@ -1,81 +1,48 @@
 import sys
 import re
 
+# regex pattern matching
+#if the pattern matches (?P) call it by <NAME>
+TOKEN_REGEX = re.compile(r"""
+    (?P<WHITESPACE>\s+)
+  |  (?P<KEYWORD>\b(if|then|else|endif|while|do|endwhile|skip)\b)
+  | (?P<IDENTIFIER>[a-zA-Z][a-zA-Z0-9]*)
+  | (?P<NUMBER>[0-9]+)
+  | (?P<SYMBOL>\+|\-|\*|/|\(|\)|:=|;)
+  | (?P<INVALID>.)
+""", re.VERBOSE)
+
 def main():
-    # Check if argument passed in terminal was invalid
     if len(sys.argv) < 3:
-        print("Usage: python scanner.py <inputfile> <outputfile>")
+        print("console format: python scanner.py <inputfile> <outputfile>")
         return
     
+    input_filename = sys.argv[1]
+    output_filename = sys.argv[2]
     try:
-        input_filename = sys.argv[1]
-        output_filename = sys.argv[2]
         with open(input_filename, 'r') as infile, open(output_filename, 'w') as outfile:
-            for line in infile: 
+            for line in infile:
                 print("\n" + line.strip())
                 outfile.write("Line: " + line)
-                scanner(line,outfile)
+                for token, typ in scanner(line):
+                    print(f"{token} : {typ}")
+                    outfile.write(f"{token} : {typ}\n")
                 outfile.write("\n")
-                
-          
-        print(f"Content from '{input_filename}' written to '{output_filename}'")   
     except FileNotFoundError:
         print(f"The file '{input_filename}' was not found")
     except Exception as e:
-        print(f"Error occured {e}")
+        print(f"Error occurred {e}")
 
-# Scanner use to check if the token if valid or invalid, then sends token to parser
-def scanner(line,outfile):
-    token = ""
-    
-    # This loop build the token up until it sees a white space
-    # prints the currently built token upon seeing a white space
-    for n in line:
-        match_symbol = re.match(r"[\( | \) | \+ | \* | \- | \% | \/| \{ | \} | \=]",n)
-        if n == " ":
-           if token:
-               print(parse(token,outfile))
-               token = ""
-        elif match_symbol:
-            if token:
-                print(parse(token,outfile))
-                token = ""
-            
-            print(parse(n,outfile))
+def scanner(line):
+    for match in TOKEN_REGEX.finditer(line): # iterates through the line and checks if there's a match in the regex object
+        token_type = match.lastgroup  # Name of the group matched
+        token = match.group(token_type) # the token that matched the group
+        if token_type == "WHITESPACE":
+            continue
+        elif token_type == "INVALID":
+            yield token, "ERROR"
         else:
-            if token and (token[0].isdigit() and n.isalpha()):
-                print(parse(token,outfile))
-                if n != " ":
-                    token = n
-            elif token and ((n == "&" or n == ".")):
-                print(parse(token,outfile))
-                token = n
-            else:
-                token += n
-    
-    # prints the last token in the string since no white space will come after
-    print(parse(token,outfile))
+            yield token, token_type
 
-# Parse get the valid token and write/return the type of token that was passed
-def parse(token,outfile):
-    identifier = re.search(r"[a-zA-Z_][a-zA-Z0-9_]*$",token)
-    symbol =  re.search(r"[\( | \) | \+ | \* | \- | \% | \/| \{ | \} | \=]+",token)
-    number = re.search(r"[0-9]+",token)
-    invalid = re.search(r"[\&|\.]", token)
-  
-    if identifier:
-        outfile.write(f"{identifier.group()} : IDENTIFIER" + "\n")
-        return(identifier.group() + " : IDENTIFIER")
-    if symbol:
-        outfile.write(f"{symbol.group()} : SYMBOL" + "\n")
-        return(symbol.group() + " : SYMBOL")
-    if number:
-        outfile.write(f"{number.group()} : NUMBER" + "\n")
-        return(number.group() + " : NUMBER")
-    if invalid:
-        outfile.write(f"ERROR READING : {invalid.group()}" +"\n")
-        return(f"ERROR READING : {invalid.group()}")
-        
-      
 if __name__ == "__main__":
     main()
