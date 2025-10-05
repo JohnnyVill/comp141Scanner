@@ -21,10 +21,11 @@ def main():
     output_filename = sys.argv[2]
     try:
         with open(input_filename, 'r') as infile, open(output_filename, 'w') as outfile:
+            
             for line in infile:
                 print("\n" + line.strip())
                 outfile.write("Line: " + line)
-                for token, typ in scanner(line):
+                for token, typ in scanner(line): #passes the line to scanner function that yields a token and token type
                     print(f"{token} : {typ}")
                     outfile.write(f"{token} : {typ}\n")
                 outfile.write("\n")
