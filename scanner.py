@@ -24,13 +24,10 @@ def main():
         with open(input_filename, 'r') as infile, open(output_filename, 'w') as outfile:
             
             for line in infile:
-                print("\n" + line.strip())
-                outfile.write("Line: " + line)
                 for token, typ in scanner(line): #passes the line to scanner function that yields a token and token type
                     #print(f"{token} : {typ}")
                     parser_module.tokens.append((token,typ))
-                outfile.write("\n")
-                parser_module.parse_program(outfile)
+            parser_module.parse_program(outfile)
                 
             
     except FileNotFoundError:

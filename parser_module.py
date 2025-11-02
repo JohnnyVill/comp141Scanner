@@ -19,7 +19,7 @@ class ast:
             lines.extend(self.right.print_tree(level + 1))
         return lines
 
-
+################################################
 def peek():
     global pos
     return tokens[pos] if pos < len(tokens) else (None, None)
@@ -28,6 +28,21 @@ def consume():
     global pos
     pos += 1
 
+def expect(expected_token):
+    tok, tok_type = peek()
+    if tok != expected_token:
+        raise SyntaxError(f"Unexpected token {tok} found, but expected '{expected_token}'")
+    consume()
+
+def expect_type(expected_type):
+    tok, tok_type = peek()
+    if tok_type != expected_type:
+        raise SyntaxError(f"Unexpected token type {tok_type}, but expected '{expected_type}'")
+    consume()
+    return (tok,tok_type)
+
+
+##################################################
 def parse_element():
     tok, tok_type = peek()
     
@@ -71,16 +86,70 @@ def parse_expr():
             break
     return node
 
+##################################################
+
+def parse_statement():
+    node = parse_basestatement()
+    tok, tok_type = peek()
+    while tok == ';':
+        consume()
+        next_tok, _ = peek()
+        if next_tok is None:
+            # allow final semicolon with no following statement
+            break
+        right = parse_basestatement()
+        node = ast(f"SYMBOL ;", node, right)
+        tok, tok_type = peek()
+    return node
+            
+def parse_basestatement():
+    tok,tok_type = peek()
+    if tok_type == "IDENTIFIER":
+        return parse_assignment()
+    elif tok == "if":
+        return parse_ifstatement()
+    elif tok == "while":
+        return parse_whilestatement()
+    elif tok == "skip":
+        consume()
+        return ast(f"{tok} {tok_type}")
+    else:
+        raise SyntaxError(f"Unexpected token {tok}")
+
+def parse_assignment():
+    tok,tok_type = expect_type("IDENTIFIER")
+    expect(":=")
+    node = parse_expr()
+    return ast(f"SYMBOL :=", ast(f"{tok_type} {tok}"), node)
+        
+def parse_ifstatement():
+    expect("if")
+    if_cond = parse_expr()
+    expect("then")
+    then_cond = parse_statement()
+    expect("else")
+    else_cond = parse_statement()
+    expect("endif")
+    return ast("IF-STATEMENT",if_cond,then_cond,else_cond)
+    
+def parse_whilestatement():
+    expect("while")
+    while_cond = parse_expr()
+    expect("do")
+    do_cond = parse_statement()
+    expect("endwhile")
+    return ast("WHILE-LOOP", while_cond, do_cond)
+                    
+
 def parse_program(outfile):
     global tokens, pos
-    print("Tokens:")
-    outfile.write("Tokens:\n")
+   
     for tok, tok_type in tokens:
         print(f"{tok} : {tok_type}")
         outfile.write(f"{tok} : {tok_type}\n")
     print("AST:")
     outfile.write("\nAST\n")
-    tree = parse_expr()
+    tree = parse_statement()
     for line in tree.print_tree():
         print(line)
         outfile.write(line + "\n")

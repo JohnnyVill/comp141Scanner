@@ -1,24 +1,58 @@
-Line: 3 * (5 + 2 / x - 1)
-Tokens:
-3 : NUMBER
-* : SYMBOL
-( : SYMBOL
-5 : NUMBER
-+ : SYMBOL
-2 : NUMBER
-/ : SYMBOL
+z : IDENTIFIER
+:= : SYMBOL
+0 : NUMBER
+; : SYMBOL
+x : IDENTIFIER
+:= : SYMBOL
+10 : NUMBER
+; : SYMBOL
+y : IDENTIFIER
+:= : SYMBOL
+0 : NUMBER
+; : SYMBOL
+while : KEYWORD
 x : IDENTIFIER
 - : SYMBOL
+y : IDENTIFIER
+do : KEYWORD
+z : IDENTIFIER
+:= : SYMBOL
+z : IDENTIFIER
++ : SYMBOL
+y : IDENTIFIER
+; : SYMBOL
+y : IDENTIFIER
+:= : SYMBOL
+y : IDENTIFIER
++ : SYMBOL
 1 : NUMBER
-) : SYMBOL
+endwhile : KEYWORD
 
 AST
-* : SYMBOL
-     3 : NUMBER
-     - : SYMBOL
-          + : SYMBOL
-               5 : NUMBER
-               / : SYMBOL
-                    2 : NUMBER
-                    x : IDENTIFIER
-          1 : NUMBER
+SYMBOL ;
+     SYMBOL ;
+          SYMBOL ;
+               SYMBOL :=
+                    IDENTIFIER z
+                    0 : NUMBER
+               SYMBOL :=
+                    IDENTIFIER x
+                    10 : NUMBER
+          SYMBOL :=
+               IDENTIFIER y
+               0 : NUMBER
+     WHILE-LOOP
+          - : SYMBOL
+               x : IDENTIFIER
+               y : IDENTIFIER
+          SYMBOL ;
+               SYMBOL :=
+                    IDENTIFIER z
+                    + : SYMBOL
+                         z : IDENTIFIER
+                         y : IDENTIFIER
+               SYMBOL :=
+                    IDENTIFIER y
+                    + : SYMBOL
+                         y : IDENTIFIER
+                         1 : NUMBER
