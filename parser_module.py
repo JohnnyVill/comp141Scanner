@@ -6,18 +6,18 @@ tokens = []
 pos = 0
 
 class ast:
-    def __init__(self, value, left = None, right = None):
+    def __init__(self, value, children = None):
         self.value = value
-        self.left = left
-        self.right = right
-        
+        self.children = children if children is not None else []
+    
     def print_tree(self, level = 0):
         lines = ["     " * level + f"{self.value}"]
-        if self.left:
-            lines.extend(self.left.print_tree(level + 1))
-        if self.right:
-            lines.extend(self.right.print_tree(level + 1))
+        
+        for child in self.children:
+            lines.extend(child.print_tree(level + 1))
         return lines
+        
+        
 
 ################################################
 def peek():
@@ -48,7 +48,7 @@ def parse_element():
     
     if tok_type == "NUMBER" or tok_type == "IDENTIFIER":
         consume()
-        return ast(f"{tok} : {tok_type}")
+        return ast(f"{tok_type} : {tok}")
     elif tok == "(":
         consume()
         node = parse_expr()
@@ -67,7 +67,7 @@ def parse_factor():
         if tok in ('*', '/'):
             consume()
             right = parse_element()
-            node = ast(f"{tok} : {tok_type}", node, right)
+            node = ast(f"{tok_type} : {tok}", [node, right])
         else:
             break
     return node
@@ -81,7 +81,7 @@ def parse_expr():
         if tok in ('+', '-'):
             consume()
             right = parse_factor()
-            node = ast(f"{tok} : {tok_type}", node, right)
+            node = ast(f"{tok_type} : {tok}", [node, right])
         else:
             break
     return node
@@ -89,7 +89,7 @@ def parse_expr():
 ##################################################
 
 def parse_statement():
-    node = parse_basestatement()
+    stmt_node = parse_basestatement()
     tok, tok_type = peek()
     while tok == ';':
         consume()
@@ -97,11 +97,10 @@ def parse_statement():
         if next_tok is None:
             # allow final semicolon with no following statement
             break
-        right = parse_basestatement()
-        node = ast(f"SYMBOL ;", node, right)
+        node = parse_basestatement()
+        stmt_node = ast(f"SYMBOL ;", [stmt_node, node])
         tok, tok_type = peek()
-    return node
-            
+    return stmt_node
 def parse_basestatement():
     tok,tok_type = peek()
     if tok_type == "IDENTIFIER":
@@ -120,7 +119,8 @@ def parse_assignment():
     tok,tok_type = expect_type("IDENTIFIER")
     expect(":=")
     node = parse_expr()
-    return ast(f"SYMBOL :=", ast(f"{tok_type} {tok}"), node)
+    id_node = ast(f"{tok_type} {tok}")
+    return ast(f"SYMBOL :=", [id_node, node])
         
 def parse_ifstatement():
     expect("if")
@@ -130,7 +130,7 @@ def parse_ifstatement():
     expect("else")
     else_cond = parse_statement()
     expect("endif")
-    return ast("IF-STATEMENT",if_cond,then_cond,else_cond)
+    return ast("IF-STATEMENT",[if_cond,then_cond,else_cond])
     
 def parse_whilestatement():
     expect("while")
@@ -138,7 +138,7 @@ def parse_whilestatement():
     expect("do")
     do_cond = parse_statement()
     expect("endwhile")
-    return ast("WHILE-LOOP", while_cond, do_cond)
+    return ast("WHILE-LOOP", [while_cond, do_cond])
                     
 
 def parse_program(outfile):
