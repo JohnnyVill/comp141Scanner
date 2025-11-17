@@ -10,6 +10,32 @@ class ast:
         self.value = value
         self.children = children if children is not None else []
     
+  
+    
+    def stack_eval(self):
+        res = self.create_stack()
+        stack = []
+        
+        for item in res:
+            word, _ , c = item.partition(' : ')
+            if word == "NUMBER":
+                stack.append(int(c))
+            elif word == "SYMBOL" and c in "+-*/":
+                right = stack.pop()
+                left = stack.pop()
+                if c == '+':
+                    stack.append(left + right)
+                elif c == '-':
+                    stack.append(left - right)
+                elif c == '*':
+                    stack.append(left * right)
+                elif c == '/':
+                    if right != 0:
+                        stack.append(left // right)
+                    else:
+                        raise ValueError("Cannot divide by 0")
+        return f"Output: {stack[0]}"
+    
     def print_tree(self, level = 0):
         lines = ["     " * level + f"{self.value}"]
         
@@ -57,30 +83,53 @@ def parse_element():
         return node
     else:
         raise SyntaxError(f"Unexpected token: {tok}")
-        
-
-def parse_factor():
+def parse_piece():
     node = parse_element()
     
     while True:
         tok, tok_type = peek()
-        if tok in ('*', '/'):
+        if tok == '*':
             consume()
             right = parse_element()
             node = ast(f"{tok_type} : {tok}", [node, right])
         else:
             break
-    return node
-        
+    return node        
 
-def parse_expr():
+def parse_factor():
+    node = parse_piece()
+    
+    while True:
+        tok, tok_type = peek()
+        if tok =='/':
+            consume()
+            right = parse_piece()
+            node = ast(f"{tok_type} : {tok}", [node, right])
+        else:
+            break
+    return node
+
+def parse_term():
     node = parse_factor()
     
     while True:
         tok, tok_type = peek()
-        if tok in ('+', '-'):
+        if tok =='-':
             consume()
             right = parse_factor()
+            node = ast(f"{tok_type} : {tok}", [node, right])
+        else:
+            break
+    return node        
+
+def parse_expr():
+    node = parse_term()
+    
+    while True:
+        tok, tok_type = peek()
+        if tok =='+':
+            consume()
+            right = parse_term()
             node = ast(f"{tok_type} : {tok}", [node, right])
         else:
             break
@@ -149,10 +198,11 @@ def parse_program(outfile):
         outfile.write(f"{tok} : {tok_type}\n")
     print("AST:")
     outfile.write("\nAST\n")
-    tree = parse_statement()
+    tree = parse_expr()
     for line in tree.print_tree():
         print(line)
         outfile.write(line + "\n")
+    print(tree.stack_eval())
         
     tokens.clear()
     pos = 0

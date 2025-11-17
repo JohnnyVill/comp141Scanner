@@ -1,58 +1,22 @@
-z : IDENTIFIER
-:= : SYMBOL
-0 : NUMBER
-; : SYMBOL
-x : IDENTIFIER
-:= : SYMBOL
+3 : NUMBER
+* : SYMBOL
+( : SYMBOL
+5 : NUMBER
++ : SYMBOL
 10 : NUMBER
-; : SYMBOL
-y : IDENTIFIER
-:= : SYMBOL
-0 : NUMBER
-; : SYMBOL
-while : KEYWORD
-x : IDENTIFIER
+/ : SYMBOL
+3 : NUMBER
 - : SYMBOL
-y : IDENTIFIER
-do : KEYWORD
-z : IDENTIFIER
-:= : SYMBOL
-z : IDENTIFIER
-+ : SYMBOL
-y : IDENTIFIER
-; : SYMBOL
-y : IDENTIFIER
-:= : SYMBOL
-y : IDENTIFIER
-+ : SYMBOL
 1 : NUMBER
-endwhile : KEYWORD
+) : SYMBOL
 
 AST
-SYMBOL ;
-     SYMBOL ;
-          SYMBOL ;
-               SYMBOL :=
-                    IDENTIFIER z
-                    NUMBER : 0
-               SYMBOL :=
-                    IDENTIFIER x
-                    NUMBER : 10
-          SYMBOL :=
-               IDENTIFIER y
-               NUMBER : 0
-     WHILE-LOOP
+SYMBOL : *
+     NUMBER : 3
+     SYMBOL : +
+          NUMBER : 5
           SYMBOL : -
-               IDENTIFIER : x
-               IDENTIFIER : y
-          SYMBOL ;
-               SYMBOL :=
-                    IDENTIFIER z
-                    SYMBOL : +
-                         IDENTIFIER : z
-                         IDENTIFIER : y
-               SYMBOL :=
-                    IDENTIFIER y
-                    SYMBOL : +
-                         IDENTIFIER : y
-                         NUMBER : 1
+               SYMBOL : /
+                    NUMBER : 10
+                    NUMBER : 3
+               NUMBER : 1
