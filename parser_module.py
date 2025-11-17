@@ -10,7 +10,14 @@ class ast:
         self.value = value
         self.children = children if children is not None else []
     
-  
+    def create_stack(self):
+        if not self.children:
+            return [self.value]
+        res = []
+        for child in self.children:
+            res.extend(child.create_stack())
+        res.append(self.value)
+        return res
     
     def stack_eval(self):
         res = self.create_stack()
