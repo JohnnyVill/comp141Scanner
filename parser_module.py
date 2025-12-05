@@ -19,7 +19,7 @@ class ast:
         res.append(self.value)
         return res
     
-    def stack_eval(self):
+    def stack_eval(self, mem):
         res = self.create_stack()
         stack = []
         
@@ -27,6 +27,10 @@ class ast:
             word, _ , c = item.partition(' : ')
             if word == "NUMBER":
                 stack.append(int(c))
+            elif word == "IDENTIFIER":
+                if c not in mem:
+                    raise RuntimeError("Uninitialized identifier " + c)
+                stack.append(mem[c])
             elif word == "SYMBOL" and c in "+-*/":
                 right = stack.pop()
                 left = stack.pop()
@@ -41,14 +45,64 @@ class ast:
                         stack.append(left // right)
                     else:
                         raise ValueError("Cannot divide by 0")
-        return f"Output: {stack[0]}"
+        return stack[0]
     
+
     def print_tree(self, level = 0):
         lines = ["     " * level + f"{self.value}"]
         
         for child in self.children:
             lines.extend(child.print_tree(level + 1))
         return lines
+
+def eval_stmt(node, memory):
+    if node is None:
+        return None, memory
+
+    label = node.value
+    parts = label.split(" ", 1)
+    kind = parts[0]
+    payload = parts[1] if len(parts) > 1 else ""
+
+    if label == "SKIP":
+        return None, memory
+
+    if kind == "SYMBOL" and payload == ":=":
+        id_node, expr_node = node.children
+        _, name = id_node.value.split(" ", 1)  
+        value = expr_node.stack_eval(memory)
+        memory[name] = value
+        return None, memory
+
+    if kind == "SYMBOL" and payload == ";":
+        left, right = node.children
+        new_left, memory = eval_stmt(left, memory)
+
+        if new_left is None:
+            return right, memory
+        else:
+            node.children[0] = new_left
+            return node, memory
+
+    if label == "IF-STATEMENT":
+        cond_node, then_node, else_node = node.children
+        cond_val = cond_node.stack_eval(memory)
+        if cond_val > 0:
+            return then_node, memory
+        else:
+            return else_node, memory
+
+    if label == "WHILE-LOOP":
+        cond_node, body_node = node.children
+        cond_val = cond_node.stack_eval(memory)
+        if cond_val > 0:
+            new_while = ast("WHILE-LOOP", [cond_node, body_node])
+            new_seq = ast("SYMBOL ;", [body_node, new_while])
+            return new_seq, memory
+        else:
+            return None, memory
+
+    raise RuntimeError(f"Unknown statement node: {label}")
         
         
 
@@ -150,7 +204,7 @@ def parse_statement():
     while tok == ';':
         consume()
         next_tok, _ = peek()
-        if next_tok is None:
+        if next_tok is None or next_tok in ("endwhile", "endif", "else"):
             # allow final semicolon with no following statement
             break
         node = parse_basestatement()
@@ -167,7 +221,7 @@ def parse_basestatement():
         return parse_whilestatement()
     elif tok == "skip":
         consume()
-        return ast(f"{tok} {tok_type}")
+        return ast(f"SKIP")
     else:
         raise SyntaxError(f"Unexpected token {tok}")
 
@@ -205,11 +259,24 @@ def parse_program(outfile):
         outfile.write(f"{tok} : {tok_type}\n")
     print("AST:")
     outfile.write("\nAST\n")
-    tree = parse_expr()
+    tree = parse_statement()
     for line in tree.print_tree():
         print(line)
         outfile.write(line + "\n")
-    print(tree.stack_eval())
+    
+    memory = {}
+    t = tree
+    while t is not None:
+        t, memory = eval_stmt(t, memory)
+
+    # 4. Print final memory state
+    print("Output:")
+    outfile.write("\nOutput:\n")
+    # Print in deterministic order
+    for name in sorted(memory.keys()):
+        line = f"{name} = {memory[name]}"
+        print(line)
+        outfile.write(line + "\n")
         
     tokens.clear()
     pos = 0
